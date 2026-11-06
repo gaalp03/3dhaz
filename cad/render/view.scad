@@ -1,5 +1,5 @@
 // Színes előnézet a kész alkatrészekből (a terminal.scad "raw_*" exportjaiból)
-VIEW = "hold";            // "hold" = kézben, 52°-ban | "flat" | "inside"
+VIEW = "hold";            // "hold" = kézben, 52°-ban | "flat" | "inside" | "exploded"
 PART_OVERRIDE = "none";
 include <../terminal.scad>
 module parts(inside=false) {
@@ -13,4 +13,10 @@ module parts(inside=false) {
 }
 if (VIEW == "hold") rotate([hold_ang,0,0]) parts();
 else if (VIEW == "inside") parts(true);
+else if (VIEW == "exploded") {   // szétszedett nézet: látszanak a pattintós kampók
+    color([0.13,0.14,0.15]) import("base.stl");
+    color([0.30,0.31,0.33]) translate([0, 0, -45]) import("back.stl");
+    color([0.86,0.93,0.16]) translate([0, 45, 0]) import("top.stl");
+    color([0.45,0.46,0.48]) translate([0, 45, -45]) import("lid.stl");
+}
 else parts();

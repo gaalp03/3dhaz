@@ -12,6 +12,12 @@
 //        "top"   : nyomtató-sapka (papírnyílás, ablakok)
 //        "lid"   : sapka hátlapja / papírcsere-fedél
 //        "assembly", "assembly_flat"
+//
+// Rögzítés: csavar nélküli, nyomtatott pattintós (cantilever snap-fit) kötések, fém nélkül.
+//   1. fedél -> sapka : felül 2 zsanér-nyelv (horonyba), alul 2 rugós kar; nyitás a sapka alján lévő 2 résen át
+//   2. test hát -> test eleje: 4 rugós kar a lap réseibe (a telefon alatt rejtve)
+//   3. test -> sapka : 4 lapos, XY-ban nyomtatott nyelv a sapka alsó falába; oldás belülről
+// Kampó: ~30°-os beszálló rámpa, derékszögű tartóél, ~0.3 mm hézag, ékes (filézett) tő.
 PART = is_undef(PART_OVERRIDE) ? "assembly" : PART_OVERRIDE;
 $fn = 72;
 eps = 0.02;
@@ -44,8 +50,9 @@ cap_front = ph_T + 3;              // 10.9 – a sapka eleje 3 mm-rel a kijelző
 cap_fw = 2.4;                      // elülső fal
 t_pf = cap_front - cap_fw - 1.6;   // nyomtató arca (6.9)
 t_pb = t_pf - pr_h;                // nyomtató alja (-36.1)
-cap_bw = 5;                        // sapka alsó fala (benne a csavarfejek)
-s_pf = s_cap + cap_bw + clr;       // nyomtató eleje (163.3)
+cap_bw = 5;                        // sapka alsó fala (itt kattannak a nyelvek)
+snap_room = 3;                     // hely a sapka alján a kampóknak
+s_pf = s_cap + cap_bw + clr + snap_room;  // nyomtató eleje (166.3)
 s_pb = s_pf + pr_l;                // nyomtató test hátulja (268.3)
 s_ear = s_pb + ear_l;              // fülek vége (275.8)
 side_gap = 4.8;                    // oldalt hely kábelnek (bal) / reteszkiállásnak (jobb)
@@ -57,10 +64,34 @@ ear_s1 = s_ear + clr + 5;          // fülzseb + hely 90°-os USB-C dugónak
 s_top = ear_s1 + 2.4;              // sapka teteje
 cav_t0 = t_pb - 1.3;               // üreg hátul (-37.4)
 cav_t1 = cap_front - cap_fw;       // üreg elöl (8.5)
-lid_t = -30;                       // osztósík a sapka és a fedél között
+lid_t = -36.4;                     // osztósík: a fedél szinte lapos hátlap
 cap_back = cav_t0 - 2.4;           // sapka hátlapja (-39.8)
 lip_s0 = s_cap - 4;                // a sapka elülső pereme ráhajlik a telefon tetejére
 slot_s = s_pb - slot_from_back;    // papírnyílás közepe a sapka elején
+
+// ---------------- pattintós kötések ----------------
+sn_gap = 0.3;                      // hézag
+sn_hook = 1.0;                     // kampó kiállása (beakadás)
+sn_ramp = sn_hook / tan(30);       // 30°-os beszálló él hossza
+// (3) test -> sapka nyelvek: XY-ban fekvő lapos kar, t irányban hajlik
+tg_th = 1.6;                       // nyelv vastagsága
+tg_catch = cav_s0 + sn_gap;        // tartóél helye (a sapka alsó falának belső síkja mögött)
+tg_tip = tg_catch + 0.7 + sn_ramp; // nyelv vége
+tgf_x = [16, 24];                  // elülső nyelvek (a lapból), x tartomány, ±
+tgf_root = 143;
+tgb_x = [18, 26];                  // hátsó nyelvek (a hát füleiből), ±
+tgb_root = 141;
+// (2) test hát -> eleje: függőleges rugós karok a rekeszben
+bk_x = [34.9, 36.5];               // kar x tartománya (kampó kifelé), ±
+bk_s = [6, 84];                    // karok kezdete s mentén (8 mm szélesek)
+bk_ledge = -2.4;                   // a lap résében a tartóél
+// (1) fedél: alsó karok és felső zsanér-nyelvek
+la_x = [5, 13];                    // alsó karok, ±
+la_s0 = cav_s0 + sn_gap;           // kar külső síkja
+la_th = 1.2;
+la_top = -23.5;                    // kar vége (szabad hossz ~10 mm)
+la_catch = -26.1;                  // tartóél (a sapka alsó falán lévő ablak alsó éle + hézag)
+lh_x = [13, 19];                   // felső zsanér-nyelvek, ±
 
 // ---------------- segédek ----------------
 module bx(x0,x1,s0,s1,t0,t1) translate([x0,s0,t0]) cube([x1-x0, s1-s0, t1-t0]);
@@ -86,16 +117,20 @@ module base() difference() {
     // Qi + mágnesgyűrű zseb elölről, a telefon hátához simul
     translate([0, qi_s, -qi_depth]) cylinder(d = qi_d, h = qi_depth + 1);
     translate([22, qi_s, -deck_t - 1]) cylinder(d = 6, h = 3);       // Qi kábel a rekeszbe
-    // test-hát csavarok (süllyesztett, a telefon alatt, a Qi zónában)
+    // opcionális tartalék csavarfuratok (alapból NEM kellenek)
     for (p = body_screws) translate([p[0], p[1], -deck_t - 1]) {
         cylinder(d = 3.4, h = 20);
         translate([0, 0, deck_t + 1 - 1.8]) cylinder(d1 = 3.4, d2 = 6.8, h = 1.81);
         translate([0, 0, deck_t + 1]) cylinder(d = 6.8, h = 12);   // csavarhúzó-hozzáférés a tálcafalon át
     }
-    // sapka-csavarok anyái (nejlon M3), hátulról betolva
-    for (x = [-20, 20]) {
-        translate([x, s_cap - 14, -3.5]) rotate([-90, 0, 0]) cylinder(d = 3.4, h = 20);
-        bx(x - 2.9, x + 2.9, s_cap - 9, s_cap - 6.3, -deck_t - 1, -0.6);
+    // (3) ablak a lapban a sapka-nyelvek fölött (a nyelv szabadon hajolhat)
+    bxs(tgf_x[0] - 0.4, tgf_x[1] + 0.4, tgf_root, s_cap + 1, -deck_t + tg_th, 1);
+    bxs(tgf_x[0] - 0.4, tgf_x[0], tgf_root, s_cap + 1, -deck_t - 1, 1);
+    bxs(tgf_x[1], tgf_x[1] + 0.4, tgf_root, s_cap + 1, -deck_t - 1, 1);
+    // (2) rések a hátsó rész rugós karjainak, felül kiszélesítve a tartóélhez
+    for (s0 = bk_s) {
+        bxs(bk_x[0] - sn_gap - 1.0, bk_x[1] + sn_gap, s0 - sn_gap, s0 + 8 + sn_gap, -deck_t - 1, bk_ledge);
+        bxs(bk_x[0] - sn_gap - 1.0, bk_x[1] + sn_hook + sn_gap, s0 - sn_gap, s0 + 8 + sn_gap, bk_ledge - eps, 0.5);
     }
     // NFC érintési zóna jelölése a lap hátulján
     translate([0, 135, -deck_t - 0.01]) difference() {
@@ -107,6 +142,18 @@ module base() difference() {
 module base_lips() {
     bxs(24, B_hw - 0.6, s_bot, 0, tray_top - eps, ph_T + 2.3);
     bxs(24, pocket_hw, -eps, 2.5, ph_T + 0.3, ph_T + 2.3);
+    // (3) sapka-nyelvek: a lap alsó rétegében fekszenek, a lap végén túl a sapkába nyúlnak
+    for (m = [0, 1]) mirror([m, 0, 0]) {
+        bx(tgf_x[0], tgf_x[1], tgf_root, tg_tip, -deck_t, -deck_t + tg_th);
+        hull() {   // ékes tő
+            bx(tgf_x[0], tgf_x[1], tgf_root - 0.5, tgf_root, -deck_t, -deck_t + tg_th + 1.6);
+            bx(tgf_x[0], tgf_x[1], tgf_root, tgf_root + 3, -deck_t, -deck_t + tg_th);
+        }
+        hull() {   // kampó: derékszögű tartóél, 30°-os rámpa
+            bx(tgf_x[0], tgf_x[1], tg_catch, tg_catch + 0.7, -deck_t + tg_th - eps, -deck_t + tg_th + sn_hook);
+            bx(tgf_x[0], tgf_x[1], tg_tip - 0.05, tg_tip, -deck_t + tg_th - eps, -deck_t + tg_th);
+        }
+    }
 }
 body_screws = [[37, 2], [-37, 2], [37, 99], [-37, 99]];
 
@@ -121,8 +168,8 @@ module back_outer() intersection() {
         }
         // oldalsínek a sapkáig
         intersection() { ext_s(bay_s1 - 5, s_cap) body_profile(); union() { bxs(nfc_hw, 60, 0, 400, -50, 50); } }
-        // fülek a sapka rögzítéséhez
-        bxs(22, nfc_hw + 1, s_cap - 8, s_cap, t_back, -15);
+        // fülek a sapka rögzítéséhez (bennük a pattintós nyelvek)
+        bxs(15.5, nfc_hw + 1, tgb_root - 2, s_cap, t_back, -15);
     }
     bx(-60, 60, s_bot - 1, s_cap + 1, -60, -deck_t);
 }
@@ -138,22 +185,45 @@ module back() difference() {
     bxs(lane_x0, lane_x1, bay_s1 - 6, s_cap + 1, t_back + wall, -deck_t + 1);
     // powerbank töltőnyílás alul
     bx(-15, 15, s_bot - 1, s_bot + wall + 1, -18, -10);
-    // csavarok a fülekben + anyafészek hátulról
-    for (x = [-28, 28]) {
-        translate([x, s_cap - 14, -18.5]) rotate([-90, 0, 0]) cylinder(d = 3.4, h = 20);
-        bx(x - 2.9, x + 2.9, s_cap - 6, s_cap - 3.3, t_back - 1, -15.5);
+    // (3) a nyelvek körül kivágás a fülekben
+    bxs(tgb_x[0] - 0.4, tgb_x[1] + 0.4, tgb_root, s_cap + 1, t_back + tg_th, -14);
+    bxs(tgb_x[0] - 0.4, tgb_x[0], tgb_root, s_cap + 1, t_back - 1, -14);
+    bxs(tgb_x[1], tgb_x[1] + 0.4, tgb_root, s_cap + 1, t_back - 1, -14);
+}
+module back_snaps() for (m = [0, 1]) mirror([m, 0, 0]) {
+    // (3) sapka-nyelv a hátlap síkjában
+    bx(tgb_x[0], tgb_x[1], tgb_root, tg_tip, t_back, t_back + tg_th);
+    hull() {
+        bx(tgb_x[0], tgb_x[1], tgb_root - 0.5, tgb_root, t_back, t_back + tg_th + 1.6);
+        bx(tgb_x[0], tgb_x[1], tgb_root, tgb_root + 3, t_back, t_back + tg_th);
+    }
+    hull() {
+        bx(tgb_x[0], tgb_x[1], tg_catch, tg_catch + 0.7, t_back + tg_th - eps, t_back + tg_th + sn_hook);
+        bx(tgb_x[0], tgb_x[1], tg_tip - 0.05, tg_tip, t_back + tg_th - eps, t_back + tg_th);
+    }
+    // (2) rugós karok a lap réseibe, kampó kifelé
+    for (s0 = bk_s) {
+        bx(bk_x[0], bk_x[1], s0, s0 + 8, t_back + wall - eps, -0.4);
+        hull() {   // ékes tő
+            bx(bk_x[0] - 1.2, bk_x[1] + 1.2, s0, s0 + 8, t_back + wall - eps, t_back + wall + 0.1);
+            bx(bk_x[0], bk_x[1], s0, s0 + 8, t_back + wall - eps, t_back + wall + 2.2);
+        }
+        hull() {   // derékszögű tartóél lefelé, 30°-os rámpa felül
+            bx(bk_x[1] - eps, bk_x[1] + sn_hook, s0, s0 + 8, bk_ledge + sn_gap, bk_ledge + sn_gap + 0.2);
+            bx(bk_x[1] - eps, bk_x[1], s0, s0 + 8, bk_ledge + sn_gap, bk_ledge + sn_gap + 0.2 + sn_ramp);
+        }
     }
 }
 module back_bosses() for (p = body_screws) translate([p[0], p[1], t_back + 1]) difference() {
     cylinder(r = 3.5, h = -deck_t - t_back - 1);
     translate([0, 0, 2]) cylinder(d = 2.6, h = 40);
 }
-module back_full() { back(); back_bosses(); }
+module back_full() { back(); back_bosses(); back_snaps(); }
 
 // ================= SAPKA (nyomtatóház) =================
 module cap_outer() {
     hull() {
-        translate([0, 0, lid_t - 6]) linear_extrude(cap_front - 1.5 - lid_t + 6) rrect(C_hw, s_cap, s_top, 9);
+        translate([0, 0, cap_back + 3.8]) linear_extrude(cap_front - 1.5 - cap_back - 3.8) rrect(C_hw, s_cap, s_top, 9);
         translate([0, 0, cap_front - 1.5]) linear_extrude(1.5) rrect(C_hw - 1.5, s_cap + 1.5, s_top - 1.5, 7.5);
         translate([0, 0, cap_back]) linear_extrude(1) rrect(C_hw - 7, s_cap + 7, s_top - 7, 4);
     }
@@ -166,21 +236,12 @@ module cap_cavity() {
         translate([-(ear_gap/2 + ear_t + 2), cav_s1 - 20]) square([ear_gap + 2*ear_t + 4, ear_s1 - cav_s1 + 20]);
     }
 }
-lid_screws = [[42.5, s_pf + 3], [-42.5, s_pf + 3], [40.5, s_pb - 1], [-40.5, s_pb - 1]];
 module cap_inside_parts() {
-    // fedélcsavar-oszlopok a sarkokban
-    for (p = lid_screws) translate([p[0], p[1], cav_t0 - 1]) cylinder(r = 3.5, h = cav_t1 - cav_t0 + 1);
-    // oldalvezetők: a nyomtatót középre fogják, köztük fut a kábel
-    for (sx = [-1, 1]) {
-        translate([sx > 0 ? pr_w/2 + clr : -cav_hw - 0.5, 0, 0]) {
-            bx(0, side_gap - clr + 0.5, s_pf + 8, s_pb - 8, t_pf - 4, cav_t1 + eps);
-            if (sx < 0) bx(0, side_gap - clr + 0.5, s_pf + 8, s_pb - 8, cav_t0 - eps, t_pb + 3);
-            else {
-                bx(0, side_gap - clr + 0.5, s_pf + 8, s_pf + 22, cav_t0 - eps, t_pb + 3);
-                bx(0, side_gap - clr + 0.5, s_pf + 60, s_pb - 8, cav_t0 - eps, t_pb + 3);
-            }
-        }
-    }
+    // oldalvezetők elöl: a nyomtatót középre fogják, mögöttük fut a kábel
+    for (sx = [-1, 1]) translate([sx > 0 ? pr_w/2 + clr : -cav_hw - 0.5, 0, 0])
+        bx(0, side_gap - clr + 0.5, s_pf + 8, s_pb - 8, t_pf - 4, cav_t1 + eps);
+    // alsó ütköző: a nyomtató nem csúszik rá a kampókra
+    bxs(27, 34, cav_s0 - eps, s_pf - 0.3, t_pb + 2, t_pf - 2);
 }
 module cap_full() difference() {
     union() { difference() { cap_outer(); cap_cavity(); } intersection() { cap_inside_parts(); cap_outer(); } }
@@ -201,20 +262,31 @@ module cap_full() difference() {
     bx(-8, 8, ear_s1 - 1, s_top + 1, t_pb + 4, t_pb + 16);
     // kábelátvezetés a test oldalsíneiből (powerbank -> nyomtató)
     bxs(28, lane_x1, s_cap - 1, cav_s0 + 1, t_back + wall, -deck_t - 1);
-    // sapka -> test csavarok (nejlon M3), fej a sapka alsó falában
-    for (p = [[20, -3.5], [-20, -3.5], [28, -18.5], [-28, -18.5]]) {
-        translate([p[0], s_cap - 1, p[1]]) rotate([-90, 0, 0]) cylinder(d = 3.4, h = cap_bw + 2);
-        translate([p[0], cav_s0 - 3, p[1]]) rotate([-90, 0, 0]) cylinder(d = 6.5, h = 10);
-    }
-    // fedélcsavarok menetfurata
-    for (p = lid_screws) translate([p[0], p[1], lid_t - 1]) cylinder(d = 2.6, h = 14);
+    // (3) rések a test nyelveinek (lefelé hely a hajláshoz)
+    bxs(tgf_x[0] - 0.4, tgf_x[1] + 0.4, s_cap - 1, cav_s0 + eps, -deck_t - 1.6, -deck_t + tg_th + sn_gap);
+    bxs(tgb_x[0] - 0.4, tgb_x[1] + 0.4, s_cap - 1, cav_s0 + eps, t_back - 1.6, t_back + tg_th + sn_gap);
+    // (1) ablak a fedél alsó karjainak: itt kattannak, és innen nyomhatók ki (nyitás)
+    bxs(la_x[0] - 0.4, la_x[1] + 0.4, s_cap - 1, cav_s0 + eps, la_catch - sn_gap, la_top + sn_gap);
+    // (1) horony a sapka tetőfalában a fedél zsanér-nyelveinek
+    bxs(lh_x[0] - 0.4, lh_x[1] + 0.4, ear_s1 - 0.6, ear_s1 + 1.2, lid_t + 0.5, lid_t + 1.8);   // alatta 0.5 mm perem tart
 }
 module top() intersection() { cap_full(); bx(-80, 80, 100, 400, lid_t, 40); }
-module lid() difference() {
+module lid() {
     intersection() { cap_full(); bx(-80, 80, 100, 400, -80, lid_t); }
-    for (p = lid_screws) translate([p[0], p[1], cap_back - 1]) {
-        cylinder(d = 3.4, h = 20);
-        cylinder(d = 6.5, h = 1 + (lid_t - cap_back) - 4);
+    for (m = [0, 1]) mirror([m, 0, 0]) {
+        // alsó rugós karok (kampó lefelé, a sapka alsó falának ablakába)
+        bx(la_x[0], la_x[1], la_s0, la_s0 + la_th, cav_t0 - eps, la_top);
+        hull() {   // ékes tő
+            bx(la_x[0], la_x[1], la_s0, la_s0 + la_th + 1.5, cav_t0 - eps, cav_t0 + 0.1);
+            bx(la_x[0], la_x[1], la_s0, la_s0 + la_th, cav_t0 - eps, cav_t0 + 1.5);
+        }
+        hull() {   // derékszögű tartóél, 30°-os rámpa
+            bx(la_x[0], la_x[1], la_s0 - sn_hook, la_s0 + eps, la_catch, la_catch + 0.8);
+            bx(la_x[0], la_x[1], la_s0 - 0.05, la_s0 + eps, la_catch, la_catch + 0.8 + sn_ramp);
+        }
+        // felső zsanér-nyelvek (L alak): becsúsznak a tetőfal hornyába
+        bx(lh_x[0], lh_x[1], ear_s1 - 1.6, ear_s1 - 0.3, cav_t0 - eps, lid_t + 1.5);
+        bx(lh_x[0], lh_x[1], ear_s1 - 0.3 - eps, ear_s1 + 0.9, lid_t + 0.8, lid_t + 1.5);
     }
 }
 
