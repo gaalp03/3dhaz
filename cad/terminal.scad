@@ -118,13 +118,7 @@ module base() difference() {
     bx(-24, 24, s_bot - 1, 1, -1, 40);
     // Qi + mágnesgyűrű zseb elölről, a telefon hátához simul
     translate([0, qi_s, -qi_depth]) cylinder(d = qi_d, h = qi_depth + 1);
-    translate([22, qi_s, -deck_t - 1]) cylinder(d = 6, h = 3);       // Qi kábel a rekeszbe
-    // opcionális tartalék csavarfuratok (alapból NEM kellenek)
-    for (p = body_screws) translate([p[0], p[1], -deck_t - 1]) {
-        cylinder(d = 3.4, h = 20);
-        translate([0, 0, deck_t + 1 - 1.8]) cylinder(d1 = 3.4, d2 = 6.8, h = 1.81);
-        translate([0, 0, deck_t + 1]) cylinder(d = 6.8, h = 12);   // csavarhúzó-hozzáférés a tálcafalon át
-    }
+    translate([0, 0, -deck_t - 1]) linear_extrude(3) hull() for (x = [19, 25]) translate([x, qi_s]) circle(d = 4);   // Qi kábelrés a rekeszbe (ovális)
     // (3) ablak a lapban a sapka-nyelvek fölött (a nyelv szabadon hajolhat)
     bxs(tgf_x[0] - 0.4, tgf_x[1] + 0.4, tgf_root, s_cap + 1, -deck_t + tg_th, 1);
     bxs(tgf_x[0] - 0.4, tgf_x[0], tgf_root, s_cap + 1, -deck_t - 1, 1);
@@ -159,7 +153,6 @@ module base_lips() {
         }
     }
 }
-body_screws = [[37, 2], [-37, 2], [37, 99], [-37, 99]];
 
 // ================= TEST HÁTULJA: powerbank-rekesz + oldalsínek =================
 module back_outer() intersection() {
@@ -218,17 +211,13 @@ module back_snaps() for (m = [0, 1]) mirror([m, 0, 0]) {
         }
     }
 }
-module back_bosses() for (p = body_screws) translate([p[0], p[1], t_back + 1]) difference() {
-    cylinder(r = 3.5, h = -deck_t - t_back - 1);
-    translate([0, 0, 2]) cylinder(d = 2.6, h = 40);
-}
 // a perem 2D alakja (x,s): a hát külső falának belső élén fut, alul és két oldalt
 module back_rim_2d(g = 0) difference() {
     translate([-(B_hw - wall + rim_w + g), s_bot + wall - rim_w - g]) square([2*(B_hw - wall + rim_w + g), s_cap - 0.5 - (s_bot + wall - rim_w - g)]);
     translate([-(B_hw - wall - g), s_bot + wall + g]) square([2*(B_hw - wall - g), 400]);
 }
 module back_rim() translate([0, 0, -deck_t - eps]) linear_extrude(rim_h) back_rim_2d(0);
-module back_full() { back(); back_bosses(); back_snaps(); back_rim(); }
+module back_full() { back(); back_snaps(); back_rim(); }
 
 // ================= SAPKA (nyomtatóház) =================
 module cap_outer() {

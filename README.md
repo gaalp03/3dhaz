@@ -60,10 +60,13 @@ Minden kötés a nyomtatott alkatrészek része (cantilever snap-fit): a kampós
 
 **Nyomtatási irány:** a sapkát rögzítő nyelvek az ágyon fekve, XY-ban készülnek, így a rétegek mentén hajlanak, ez a legerősebb eset. A test-hát és a fedél karjai függőlegesen nyomtatódnak, mert a záródás iránya ezt adja. Ezért ezeket hosszúra és vékonyra méreteztem, így a nyúlás kicsi marad.
 
-**Tartalék:** a test eleje és hátulja között megmaradt 4 db opcionális M3 furat (süllyesztett, a telefon alatt, a felső harmadon kívül). Alapból nem kellenek. A sapkánál és a fedélnél nincs csavar.
+**Csavar sehol nincs:** a modellben egyetlen csavarfurat vagy csavarhüvely sincs, minden kötés nyomtatott pattintó. A ház teljesen fémmentes, az NFC (Tap to Pay) közelében sincs fém.
+
+![a tálca csavarlyukak nélkül](docs/tray.png)
+*A test eleje telefon nélkül: Qi zseb, ovális Qi kábelrés, 4 pattintórés, felül a sapka-nyelvek – csavarlyuk nincs.*
 
 ## Összeszerelés
-1. **Qi modul** (kerek, mágnesgyűrűs, Ø50–56, ≤6 mm): elölről a zsebbe kell tenni, a kábelét a lyukon át a rekeszbe vezetni.
+1. **Qi modul** (kerek, mágnesgyűrűs, Ø50–56, ≤6 mm): elölről a zsebbe kell tenni, a kábelét az ovális kábelrésen át a rekeszbe vezetni.
 2. **Powerbank** a rekeszbe, aztán a test hátulját rá kell nyomni az elejére, amíg mind a 4 kar bekattan.
 3. **Sapka:** rá kell tolni a test tetejére, amíg a 4 nyelv bekattan.
 4. **Nyomtató:** hátulról kell a sapkába tenni, arccal előre, fülekkel felfelé. A reteszt a jobb oldali ablakba kell igazítani.
