@@ -15,6 +15,9 @@ Felül a nyomtató „sapka”, alatta a telefon mint érintőkijelző, ahogy a 
 - **A telefon mögött:** középen mágneses Qi zseb, alatta powerbank-rekesz. A felső harmad mögött csak műanyag van (7 mm), hátul egy bemélyedéssel a kártyás érintéshez (NFC / Tap to Pay).
 - Nincs láb, rúd vagy állvány: az egész egy fogható darab.
 
+![jobb oldal, zárt fal](docs/right_side.png)
+*A sapka jobb oldala: zárt, sima fal, nincs papírkinyitó-ablak.*
+
 ## Fő méretek (mm)
 | | |
 |---|---|
@@ -28,7 +31,7 @@ Felül a nyomtató „sapka”, alatta a telefon mint érintőkijelző, ahogy a 
 | Nyomtató-üreg | 89,6 × 107,6 + fülzseb, 45,8 mély; oldalt 4,8 mm kábelhely |
 | Papírnyílás | 67 × 8 a sapka elején, fogazott alsó éllel |
 | Bekapcsoló ablak (bal) | a nyomtató hátuljától 6–45, aljától 6–38 |
-| Papírkinyitó ablak (jobb) | 28 széles, hátrafelé nyitott, a kiálló reteszhez |
+| Jobb oldal | zárt, sima fal; belül 1 mm-es zseb a nyomtató kiálló papírreteszének (kívülről nincs nyílás) |
 | USB-C (fülek között) | 16 × 12 kivágás a sapka tetején, kívülről is dugható |
 
 ## Részek (mind ráfér egy 220 × 220-as ágyra, támasz nélkül)
@@ -36,7 +39,7 @@ Felül a nyomtató „sapka”, alatta a telefon mint érintőkijelző, ahogy a 
 |---|---|---|
 | `stl/terminal_base.stl` / `.3mf` | test eleje: telefontálca + Qi zseb + 2 sapka-nyelv | a lap hátulja az ágyon |
 | `stl/terminal_back.stl` / `.3mf` | test hátulja: powerbank-rekesz + 4 rugós kar + 2 sapka-nyelv | hátlappal az ágyon |
-| `stl/terminal_top.stl` / `.3mf` | nyomtató-sapka (papírnyílás, ablakok, pattintó-rések) | elejével az ágyon |
+| `stl/terminal_top.stl` / `.3mf` | nyomtató-sapka (papírnyílás, bal bekapcsoló ablak, pattintó-rések) | elejével az ágyon |
 | `stl/terminal_lid.stl` / `.3mf` | papírcsere-fedél: 2 zsanér-nyelv + 2 rugós kar | hátlappal az ágyon |
 
 **Anyag: PETG ajánlott.** A PETG szívósabb, és sokkal több nyitást-zárást bír, mint a PLA, ami ridegebb, és a rugós karok tövénél idővel megreped. Javasolt beállítás: 3–4 fal, 20–25 % infill, 0,2 mm réteg.
@@ -69,7 +72,7 @@ Minden kötés a nyomtatott alkatrészek része (cantilever snap-fit): a kampós
 1. **Qi modul** (kerek, mágnesgyűrűs, Ø50–56, ≤6 mm): elölről a zsebbe kell tenni, a kábelét az ovális kábelrésen át a rekeszbe vezetni.
 2. **Powerbank** a rekeszbe, aztán a test hátulját rá kell nyomni az elejére, amíg mind a 4 kar bekattan.
 3. **Sapka:** rá kell tolni a test tetejére, amíg a 4 nyelv bekattan.
-4. **Nyomtató:** hátulról kell a sapkába tenni, arccal előre, fülekkel felfelé. A reteszt a jobb oldali ablakba kell igazítani.
+4. **Nyomtató:** hátulról kell a sapkába tenni, arccal előre, fülekkel felfelé. A kiálló papírretesz a jobb fal belső zsebébe kerül. Papírcseréhez a nyomtatót ki kell venni (fedél le, nyomtató ki); a retesz a házon keresztül nem érhető el, és nem is kell.
 5. **Fedél:** a felső nyelveket be kell akasztani, a fedelet lehajtani, és az alja rákattan.
 6. **Belső tápellátás (opcionális):** a powerbankból mindkét oldalsínben fut egy kábelcsatorna a sapkába, a nyomtató mellett fel a fülek közé, ahol 90°-os USB-C dugó kell.
 7. **Telefon:** a tetejét fel kell tolni a sapka pereme alá, aztán az alját lenyomni és visszacsúsztatni a perem mögé.

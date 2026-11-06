@@ -55,7 +55,7 @@ snap_room = 3;                     // hely a sapka alján a kampóknak
 s_pf = s_cap + cap_bw + clr + snap_room;  // nyomtató eleje (166.3)
 s_pb = s_pf + pr_l;                // nyomtató test hátulja (268.3)
 s_ear = s_pb + ear_l;              // fülek vége (275.8)
-side_gap = 4.8;                    // oldalt hely kábelnek (bal) / reteszkiállásnak (jobb)
+side_gap = 4.8;                    // oldalt hely kábelnek (bal) / a papírretesznek (jobb, belső zsebbel)
 cav_hw = pr_w/2 + side_gap;        // 44.8
 C_hw = cav_hw + wall;              // sapka fél-szélessége (47 -> 94 mm)
 cav_s0 = s_cap + cap_bw;           // 162
@@ -255,8 +255,9 @@ module cap_full() difference() {
                        [[33.5, slot_s - 4]]));
     // BAL: bekapcsoló ablak (nyomtató hátuljától 6..45, aljától 6..38)
     bx(-C_hw - 1, -cav_hw + eps - 3, s_pb - 45, s_pb - 6, t_pb + 6, t_pb + 38);
-    // JOBB: papírkinyitó ablak, hátrafelé nyitott (a nyomtató hátulról, a kiálló retesszel együtt tehető be)
-    bx(cav_hw - 3, C_hw + 1, s_pf + 40 - 14, s_pf + 40 + 14, lid_t - 20, t_pb + 30);
+    // JOBB: nincs ablak (papírcsere a nyomtató kivételével). Belül zárt zseb a kiálló papírreteszhez:
+    // a fal belülről 1 mm-rel vékonyabb (kívül 1.2 mm sima fal marad), hátrafelé nyitott, így a nyomtató hátulról betehető.
+    bx(cav_hw - eps, cav_hw + 1.0, s_pf + 40 - 15, s_pf + 40 + 15, lid_t - 1, t_pb + 31);
     // USB-C a fülek között (a sapka tetején, kívülről is dugható)
     bx(-8, 8, ear_s1 - 1, s_top + 1, t_pb + 4, t_pb + 16);
     // kábelátvezetés a test oldalsíneiből (powerbank -> nyomtató)
@@ -284,7 +285,6 @@ module lid_rim() translate([0, 0, cav_t0 - eps]) linear_extrude(lid_t - cav_t0 +
         translate([la_x[0] - 1, cav_s0 - 1]) square([la_x[1] - la_x[0] + 2, 4]);
         translate([lh_x[0] - 1, ear_s1 - 3]) square([lh_x[1] - lh_x[0] + 2, 4]);
     }
-    translate([cav_hw - 4, s_pf + 40 - 15]) square([10, 30]);    // retesz-ablak
 }
 module lid() {
     intersection() { cap_full(); bx(-80, 80, 100, 400, -80, lid_t); }
