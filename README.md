@@ -43,7 +43,12 @@ Felül a nyomtató „sapka”, alatta a telefon mint érintőkijelző, ahogy a 
 Forrás: `cad/terminal.scad` (`PART = base | back | top | lid | assembly`). Színes előnézet: `cad/render/view.scad` (`VIEW = hold | inside | exploded`).
 
 ## Pattintós rögzítés (csavar és fém nélkül)
-Minden kötés a nyomtatott alkatrészek része (cantilever snap-fit). Kampók: kb. 30°-os beszálló rámpa, derékszögű tartóél, 0,3 mm hézag, ékes (filézett) tő. Összerakva kívülről csak a fedél kioldó rései látszanak.
+Minden kötés a nyomtatott alkatrészek része (cantilever snap-fit): a kampós kar rányomásra kattan, és hajlítva oldódik. Kampók: kb. 30°-os beszálló rámpa, derékszögű tartóél, 0,3 mm hézag, ékes (filézett) tő. Összerakva kívülről csak a fedél kioldó rései látszanak.
+
+![pattintók metszetben](docs/snap_sections.png)
+*Metszetek a modellből: piros = a kampós kar, türkiz = a perem vagy ablak, amibe beakad.*
+
+**Körbefutó illesztőperem:** a test hátsó része egy 1 × 1,8 mm-es peremmel ül a test elejének hornyába, a fedél pedig egy peremmel a sapka nyílásába. Így a héj zárt, a részek pontosan egymásra ülnek, mielőtt a kampók kattannak, és oldalirányban sem csúsznak el.
 
 | kötés | hogyan zár | hogyan nyílik | kar | nyúlás* |
 |---|---|---|---|---|

@@ -92,6 +92,8 @@ la_th = 1.2;
 la_top = -23.5;                    // kar vége (szabad hossz ~10 mm)
 la_catch = -26.1;                  // tartóél (a sapka alsó falán lévő ablak alsó éle + hézag)
 lh_x = [13, 19];                   // felső zsanér-nyelvek, ±
+// körbefutó illesztőperem (nyelv + horony), mint a nyomtatott dobozoknál
+rim_w = 1.0; rim_h = 1.8; rim_gap = 0.25;
 
 // ---------------- segédek ----------------
 module bx(x0,x1,s0,s1,t0,t1) translate([x0,s0,t0]) cube([x1-x0, s1-s0, t1-t0]);
@@ -132,6 +134,8 @@ module base() difference() {
         bxs(bk_x[0] - sn_gap - 1.0, bk_x[1] + sn_gap, s0 - sn_gap, s0 + 8 + sn_gap, -deck_t - 1, bk_ledge);
         bxs(bk_x[0] - sn_gap - 1.0, bk_x[1] + sn_hook + sn_gap, s0 - sn_gap, s0 + 8 + sn_gap, bk_ledge - eps, 0.5);
     }
+    // horony a test-hát körbefutó pereméhez (a lap hátoldalán)
+    translate([0, 0, -deck_t - 1]) linear_extrude(1 + rim_h + 0.2) back_rim_2d(rim_gap);
     // NFC érintési zóna jelölése a lap hátulján
     translate([0, 135, -deck_t - 0.01]) difference() {
         cylinder(d = 30, h = 0.7); translate([0, 0, -1]) cylinder(d = 27, h = 3);
@@ -218,7 +222,13 @@ module back_bosses() for (p = body_screws) translate([p[0], p[1], t_back + 1]) d
     cylinder(r = 3.5, h = -deck_t - t_back - 1);
     translate([0, 0, 2]) cylinder(d = 2.6, h = 40);
 }
-module back_full() { back(); back_bosses(); back_snaps(); }
+// a perem 2D alakja (x,s): a hát külső falának belső élén fut, alul és két oldalt
+module back_rim_2d(g = 0) difference() {
+    translate([-(B_hw - wall + rim_w + g), s_bot + wall - rim_w - g]) square([2*(B_hw - wall + rim_w + g), s_cap - 0.5 - (s_bot + wall - rim_w - g)]);
+    translate([-(B_hw - wall - g), s_bot + wall + g]) square([2*(B_hw - wall - g), 400]);
+}
+module back_rim() translate([0, 0, -deck_t - eps]) linear_extrude(rim_h) back_rim_2d(0);
+module back_full() { back(); back_bosses(); back_snaps(); back_rim(); }
 
 // ================= SAPKA (nyomtatóház) =================
 module cap_outer() {
@@ -271,8 +281,25 @@ module cap_full() difference() {
     bxs(lh_x[0] - 0.4, lh_x[1] + 0.4, ear_s1 - 0.6, ear_s1 + 1.2, lid_t + 0.5, lid_t + 1.8);   // alatta 0.5 mm perem tart
 }
 module top() intersection() { cap_full(); bx(-80, 80, 100, 400, lid_t, 40); }
+module cav_2d() {
+    rrect(cav_hw, cav_s0, cav_s1, 18);
+    translate([-(ear_gap/2 + ear_t + 2), cav_s1 - 20]) square([ear_gap + 2*ear_t + 4, ear_s1 - cav_s1 + 20]);
+}
+module printer_2d() translate([0, s_pf + pr_l/2]) offset(r = pr_r) square([pr_w - 2*pr_r, pr_l - 2*pr_r], center = true);
+// fedél pereme: a sapka nyílásába ül, körbe zár (a kampók és a nyomtató helyén megszakad)
+module lid_rim() translate([0, 0, cav_t0 - eps]) linear_extrude(lid_t - cav_t0 + rim_h) difference() {
+    offset(delta = -rim_gap) cav_2d();
+    offset(delta = -rim_gap - rim_w) cav_2d();
+    offset(r = 0.6) printer_2d();
+    for (m = [0, 1]) mirror([m, 0]) {
+        translate([la_x[0] - 1, cav_s0 - 1]) square([la_x[1] - la_x[0] + 2, 4]);
+        translate([lh_x[0] - 1, ear_s1 - 3]) square([lh_x[1] - lh_x[0] + 2, 4]);
+    }
+    translate([cav_hw - 4, s_pf + 40 - 15]) square([10, 30]);    // retesz-ablak
+}
 module lid() {
     intersection() { cap_full(); bx(-80, 80, 100, 400, -80, lid_t); }
+    lid_rim();
     for (m = [0, 1]) mirror([m, 0, 0]) {
         // alsó rugós karok (kampó lefelé, a sapka alsó falának ablakába)
         bx(la_x[0], la_x[1], la_s0, la_s0 + la_th, cav_t0 - eps, la_top);
