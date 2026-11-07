@@ -15,8 +15,9 @@ Felül a nyomtató „sapka”, alatta a telefon mint érintőkijelző, ahogy a 
 - **A telefon mögött:** középen mágneses Qi zseb, alatta powerbank-rekesz. A felső harmad mögött csak műanyag van (7 mm), hátul egy bemélyedéssel a kártyás érintéshez (NFC / Tap to Pay).
 - Nincs láb, rúd vagy állvány: az egész egy fogható darab.
 
-![jobb oldal, zárt fal](docs/right_side.png)
-*A sapka jobb oldala: zárt, sima fal, nincs papírkinyitó-ablak.*
+| bal oldal (bekapcsológomb) | jobb oldal (zárt fal) |
+|---|---|
+| ![bal oldal](docs/left_side.png) | ![jobb oldal](docs/right_side.png) |
 
 ## Fő méretek (mm)
 | | |
@@ -24,13 +25,14 @@ Felül a nyomtató „sapka”, alatta a telefon mint érintőkijelző, ahogy a 
 | Teljes | 293 hosszú × 94 széles (sapka) / 87 (test) |
 | Vastagság | test 28 (+2 mm kiálló üveg), sapka 51 |
 | Kézben / bemutató nézetben | a kijelző kb. 52°-ban dől |
-| Telefonzseb | 76,5 × 159,2 (3,5 mm hely a behelyezéshez) |
+| Telefonzseb | 76,5 × 159,2 (3,5 mm beszúróút); felül 2,7 mm-es perem-átfedés, alul 2,5 mm |
+| Behelyezés | a telefon teteje alatt 2 mm-es bemélyedés (`top_dip`, rámpa 120→150 mm), a perem alsó élén 1 mm letörés: a telefon kb. 0–18°-os szögben bebillenthető |
 | Qi + mágnesgyűrű zseb | Ø58 × 6, elölről, közvetlenül a telefon háta mögött; középpontja 72 mm-re a telefon aljától |
 | NFC-zóna | a telefon felső 52 mm-e mögött: fém, mágnes és kábel nélkül, 7 mm műanyag, hátul bemélyedés |
 | Powerbank-rekesz | 105 × 82 × 12,8 (pl. vékony 5000 mAh-s), a felső harmad alatt; töltőnyílás a test alján |
 | Nyomtató-üreg | 89,6 × 107,6 + fülzseb, 45,8 mély; oldalt 4,8 mm kábelhely |
 | Papírnyílás | 67 × 8 a sapka elején, fogazott alsó éllel |
-| Bekapcsoló ablak (bal) | a nyomtató hátuljától 6–45, aljától 6–38 |
+| Bekapcsológomb (bal) | két darabos, fogva tartott nyomógomb; a nyomtató hátuljától 15 mm, aljától 20 mm (`btn_from_back`, `btn_from_bottom`), löket 2,2 mm |
 | Jobb oldal | zárt, sima fal; belül 1 mm-es zseb a nyomtató kiálló papírreteszének (kívülről nincs nyílás) |
 | USB-C (fülek között) | 16 × 12 kivágás a sapka tetején, kívülről is dugható |
 
@@ -39,8 +41,10 @@ Felül a nyomtató „sapka”, alatta a telefon mint érintőkijelző, ahogy a 
 |---|---|---|
 | `stl/terminal_base.stl` / `.3mf` | test eleje: telefontálca + Qi zseb + 2 sapka-nyelv | a lap hátulja az ágyon |
 | `stl/terminal_back.stl` / `.3mf` | test hátulja: powerbank-rekesz + 4 rugós kar + 2 sapka-nyelv | hátlappal az ágyon |
-| `stl/terminal_top.stl` / `.3mf` | nyomtató-sapka (papírnyílás, bal bekapcsoló ablak, pattintó-rések) | elejével az ágyon |
+| `stl/terminal_top.stl` / `.3mf` | nyomtató-sapka (papírnyílás, gomblyuk a bal oldalon, pattintó-rések) | elejével az ágyon |
 | `stl/terminal_lid.stl` / `.3mf` | papírcsere-fedél: 2 zsanér-nyelv + 2 rugós kar | hátlappal az ágyon |
+| `stl/terminal_btn_outer.stl` / `.3mf` | bekapcsológomb, külső darab: Ø13 fej + szár + kúpos csúcs | fejjel az ágyon |
+| `stl/terminal_btn_inner.stl` / `.3mf` | bekapcsológomb, belső darab: patkó-klipsz | laposan az ágyon |
 
 **Anyag: PETG ajánlott.** A PETG szívósabb, és sokkal több nyitást-zárást bír, mint a PLA, ami ridegebb, és a rugós karok tövénél idővel megreped. Javasolt beállítás: 3–4 fal, 20–25 % infill, 0,2 mm réteg.
 Forrás: `cad/terminal.scad` (`PART = base | back | top | lid | assembly`). Színes előnézet: `cad/render/view.scad` (`VIEW = hold | inside | exploded`).
@@ -68,14 +72,27 @@ Minden kötés a nyomtatott alkatrészek része (cantilever snap-fit): a kampós
 ![a tálca csavarlyukak nélkül](docs/tray.png)
 *A test eleje telefon nélkül: Qi zseb, ovális Qi kábelrés, 4 pattintórés, felül a sapka-nyelvek – csavarlyuk nincs.*
 
+## Hosszabbított bekapcsológomb (bal oldal)
+![a gomb metszete](docs/button_section.png)
+*A gomb tengelyén vágva. Bal: nyugalomban, jobb: végig benyomva. Piros: külső darab (fej, szár, kúpos csúcs), sötét: belső patkó-klipsz, türkiz: a sapka fala, szürke: a nyomtató.*
+
+- **Külső darab:** Ø13 mm-es fej + Ø6,4 mm-es szár. Kívülről kell a Ø7 mm-es lyukba dugni; a fej nem fér át rajta, és a fal 1 mm-es süllyesztésébe ül.
+- **Belső darab:** lapos patkó-klipsz. Bentről, oldalról pattan a szár hornyára (levett fedél és kivett nyomtató mellett). Ettől a gomb fogva tartott: kifelé a klipsz, befelé a fej akad meg.
+- **Működés:** a szár vége kúpos csúcs. Megnyomva a csúcs a nyomtató saját, süllyesztett gombját nyomja (ébresztés, 2–3 mp-es nyomás bekapcsol, dupla nyomás önteszt). A gomb **nincs a nyomtatóhoz rögzítve**, a nyomtató továbbra is kivehető.
+- **Löket:** 2,2 mm, a fej a süllyesztés aljáig mehet. Nyugalomban a csúcs 0,3 mm-re áll a nyomtató oldalától, így a hátulról becsúszó nyomtató nem akad bele; a kúp minden irányból rámpa. Végig benyomva a csúcs 1,9 mm-re jut a nyomtató oldalsíkja alá, vagyis a gomb mélyedésébe.
+- **A kábel** a bal oldali 4,8 mm-es résben a gomb alatt vagy fölött fér el (a klipsz Ø10 mm).
+- **Állítás mérés után:** `btn_from_back`, `btn_from_bottom` (a gomb helye), `btn_tip_d` (csúcs), `btn_travel` (löket) a `cad/terminal.scad` elején. Az üreg bal fala ±4 mm-en belül végig egyenes, így a gomb ennyit mozgatható.
+- **Anyag:** PETG. A két kis darabból érdemes tartalékot is nyomtatni.
+
 ## Összeszerelés
 1. **Qi modul** (kerek, mágnesgyűrűs, Ø50–56, ≤6 mm): elölről a zsebbe kell tenni, a kábelét az ovális kábelrésen át a rekeszbe vezetni.
 2. **Powerbank** a rekeszbe, aztán a test hátulját rá kell nyomni az elejére, amíg mind a 4 kar bekattan.
 3. **Sapka:** rá kell tolni a test tetejére, amíg a 4 nyelv bekattan.
 4. **Nyomtató:** hátulról kell a sapkába tenni, arccal előre, fülekkel felfelé. A kiálló papírretesz a jobb fal belső zsebébe kerül. Papírcseréhez a nyomtatót ki kell venni (fedél le, nyomtató ki); a retesz a házon keresztül nem érhető el, és nem is kell.
-5. **Fedél:** a felső nyelveket be kell akasztani, a fedelet lehajtani, és az alja rákattan.
-6. **Belső tápellátás (opcionális):** a powerbankból mindkét oldalsínben fut egy kábelcsatorna a sapkába, a nyomtató mellett fel a fülek közé, ahol 90°-os USB-C dugó kell.
-7. **Telefon:** a tetejét fel kell tolni a sapka pereme alá, aztán az alját lenyomni és visszacsúsztatni a perem mögé.
+5. **Bekapcsológomb:** a külső darabot kívülről a bal oldali lyukba kell dugni, bentről a patkó-klipszet oldalról rápattintani a horonyra. Ezt a nyomtató betétele előtt kell megcsinálni.
+6. **Fedél:** a felső nyelveket be kell akasztani, a fedelet lehajtani, és az alja rákattan.
+7. **Belső tápellátás (opcionális):** a powerbankból mindkét oldalsínben fut egy kábelcsatorna a sapkába, a nyomtató mellett fel a fülek közé, ahol 90°-os USB-C dugó kell.
+8. **Telefon:** ferdén (kb. 5–15°-ban) a tetejét fel kell tolni a sapka pereme alá, ütközésig, ez kb. 3,5 mm. Az alját le kell nyomni, aztán visszacsúsztatni az alsó peremek mögé. Kivétel fordítva: feltolni, az alját kiemelni. A telefont a peremek tartják, nem a mágnes.
 
 **Papírcsere:** a sapka alján lévő 2 rést meg kell nyomni, a fedél kibillen, és a nyomtató hátrafelé kivehető. Szerszám nem kell.
 

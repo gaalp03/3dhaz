@@ -66,7 +66,12 @@ cav_t0 = t_pb - 1.3;               // üreg hátul (-37.4)
 cav_t1 = cap_front - cap_fw;       // üreg elöl (8.5)
 lid_t = -36.4;                     // osztósík: a fedél szinte lapos hátlap
 cap_back = cav_t0 - 2.4;           // sapka hátlapja (-39.8)
-lip_s0 = s_cap - 4;                // a sapka elülső pereme ráhajlik a telefon tetejére
+lip_s0 = s_cap - 4;                // a sapka elülső pereme ráhajlik a telefon tetejére (ülve ~2.7 mm átfedés)
+// telefon behelyezése: a tetejét fel kell tolni a perem alá (+3.5 mm), az alját lenyomni, visszacsúsztatni az alsó peremek mögé
+lip_chamfer = 1.0;                 // beszálló letörés a sapka-perem alsó élén
+top_dip = 2.0;                     // bemélyedés a tálcán a telefon teteje alatt: ferdén is bebújik a perem alá
+dip_s0 = 120; dip_s1 = 150;        // a bemélyedés rámpája (csak műanyag, NFC-zóna OK)
+slot_end_extra = 2.0;              // a telefonrés vége ferde: billentéskor a kijelző felső éle nem akad
 slot_s = s_pb - slot_from_back;    // papírnyílás közepe a sapka elején
 
 // ---------------- pattintós kötések ----------------
@@ -92,6 +97,22 @@ la_th = 1.2;
 la_top = -23.5;                    // kar vége (szabad hossz ~10 mm)
 la_catch = -26.1;                  // tartóél (a sapka alsó falán lévő ablak alsó éle + hézag)
 lh_x = [13, 19];                   // felső zsanér-nyelvek, ±
+
+// ---------------- bal oldali, két darabos hosszabbított bekapcsológomb ----------------
+// A nyomtató saját, süllyesztett gombját (Ø≈8, fotóból ±4 mm) nyomja; a nyomtatóhoz NINCS rögzítve.
+btn_from_back = 15;                // gomb közepe a nyomtató test-hátuljától (mérés után állítható)
+btn_from_bottom = 20;              // gomb közepe a nyomtató aljától (asztaltól)
+btn_head_d = 13; btn_head_h = 2.0; // külső fej (nem fér át a lyukon)
+btn_shaft_d = 6.4; btn_hole_d = 7.0;
+btn_cb_d = 14; btn_cb_depth = 1.0; // süllyesztés a fal külső oldalán
+btn_travel = 2.2;                  // löket (a fej a süllyesztés aljáig mehet)
+btn_groove_d = 4.4; btn_groove_l = 1.6; btn_lip_l = 1.0;
+btn_clip_t = 1.4; btn_clip_od = 10; btn_clip_mouth = 3.8;
+btn_tip_d = 5.0; btn_tip_clear = 0.3; // csúcs: nyugalomban 0.3 mm-re a nyomtató oldalától
+s_btn = s_pb - btn_from_back;
+t_btn = t_pb + btn_from_bottom;
+btn_u_in = C_hw - cav_hw;          // fal belső síkja (a fal külső síkjától mérve)
+btn_u_pr = C_hw - pr_w/2;          // a nyomtató oldala
 // körbefutó illesztőperem (nyelv + horony), mint a nyomtatott dobozoknál
 rim_w = 1.0; rim_h = 1.8; rim_gap = 0.25;
 
@@ -119,6 +140,11 @@ module base() difference() {
     // Qi + mágnesgyűrű zseb elölről, a telefon hátához simul
     translate([0, qi_s, -qi_depth]) cylinder(d = qi_d, h = qi_depth + 1);
     translate([0, 0, -deck_t - 1]) linear_extrude(3) hull() for (x = [19, 25]) translate([x, qi_s]) circle(d = 4);   // Qi kábelrés a rekeszbe (ovális)
+    // bemélyedés a telefon teteje alatt (behelyezéshez)
+    hull() {
+        bx(-pocket_hw, pocket_hw, dip_s0, dip_s0 + eps, -eps, 1);
+        bx(-pocket_hw, pocket_hw, dip_s1, s_cap + 1, -top_dip, 1);
+    }
     // (3) ablak a lapban a sapka-nyelvek fölött (a nyelv szabadon hajolhat)
     bxs(tgf_x[0] - 0.4, tgf_x[1] + 0.4, tgf_root, s_cap + 1, -deck_t + tg_th, 1);
     bxs(tgf_x[0] - 0.4, tgf_x[0], tgf_root, s_cap + 1, -deck_t - 1, 1);
@@ -229,9 +255,15 @@ module cap_outer() {
     // elülső perem: ráül a telefon felső élére
     translate([0, 0, ph_T + 0.3]) linear_extrude(cap_front - ph_T - 0.3) rrect(C_hw - 1.5, lip_s0, s_cap + 10, 4);
 }
+// üreg alaprajza: elöl R18 (ehhez igazodnak a pattintók), hátul R6, hogy a bal fal a gomb teljes állítási tartományában egyenes legyen
+cav_r_front = 18; cav_r_back = 6;
+module cav_body_2d() hull() for (sx = [-1, 1]) {
+    translate([sx * (cav_hw - cav_r_front), cav_s0 + cav_r_front]) circle(cav_r_front);
+    translate([sx * (cav_hw - cav_r_back), cav_s1 - cav_r_back]) circle(cav_r_back);
+}
 module cap_cavity() {
     translate([0, 0, cav_t0]) linear_extrude(cav_t1 - cav_t0) {
-        rrect(cav_hw, cav_s0, cav_s1, 18);
+        cav_body_2d();
         translate([-(ear_gap/2 + ear_t + 2), cav_s1 - 20]) square([ear_gap + 2*ear_t + 4, ear_s1 - cav_s1 + 20]);
     }
 }
@@ -245,7 +277,16 @@ module cap_inside_parts() {
 module cap_full() difference() {
     union() { difference() { cap_outer(); cap_cavity(); } intersection() { cap_inside_parts(); cap_outer(); } }
     // a telefon teteje becsúszik a perem alá (behelyezéskor +3.5 mm)
-    bx(-pocket_hw, pocket_hw, lip_s0 - 1, ph_L + 3.5, -0.2, ph_T + 0.3);
+    bx(-pocket_hw, pocket_hw, lip_s0 - 1, ph_L + 3.5, -top_dip - 0.2, ph_T + 0.3);
+    hull() {   // ferde résvég
+        bx(-pocket_hw, pocket_hw, ph_L + 3.5 - eps, ph_L + 3.5, -top_dip - 0.2, ph_T + 0.3);
+        bx(-pocket_hw, pocket_hw, ph_L + 3.5, ph_L + 3.5 + slot_end_extra, ph_T - 0.5, ph_T + 0.3);
+    }
+    // beszálló letörés a perem alsó élén
+    hull() {
+        bx(-60, 60, lip_s0 - 1, lip_s0, ph_T + 0.3 - eps, ph_T + 0.3 + lip_chamfer);
+        bx(-60, 60, lip_s0 - 1, lip_s0 + lip_chamfer, ph_T + 0.3 - eps, ph_T + 0.3);
+    }
     // a test eleje illeszkedik a perem alá
     translate([0, 0, 0]) bx(-B_hw - 0.2, B_hw + 0.2, lip_s0 - 1, s_cap, -deck_t - 0.2, ph_T + 0.3);
     // papírnyílás fogazott tépőéllel (a fogak az alsó, kijelző felőli élen)
@@ -253,8 +294,11 @@ module cap_full() difference() {
         polygon(concat([[33.5, slot_s + 4], [-33.5, slot_s + 4]],
                        [for (i = [0:21]) each [[-33.5 + i*3, slot_s - 4], [-33.5 + i*3 + 1.5, slot_s - 2.4]]],
                        [[33.5, slot_s - 4]]));
-    // BAL: bekapcsoló ablak (nyomtató hátuljától 6..45, aljától 6..38)
-    bx(-C_hw - 1, -cav_hw + eps - 3, s_pb - 45, s_pb - 6, t_pb + 6, t_pb + 38);
+    // BAL: lyuk a hosszabbított bekapcsológombnak (kívül süllyesztett, a fej nem fér át)
+    translate([-C_hw, s_btn, t_btn]) rotate([0, 90, 0]) {
+        translate([0, 0, -1]) cylinder(d = btn_hole_d, h = btn_u_in + 2);
+        translate([0, 0, -1]) cylinder(d = btn_cb_d, h = 1 + btn_cb_depth);
+    }
     // JOBB: nincs ablak (papírcsere a nyomtató kivételével). Belül zárt zseb a kiálló papírreteszhez:
     // a fal belülről 1 mm-rel vékonyabb (kívül 1.2 mm sima fal marad), hátrafelé nyitott, így a nyomtató hátulról betehető.
     bx(cav_hw - eps, cav_hw + 1.0, s_pf + 40 - 15, s_pf + 40 + 15, lid_t - 1, t_pb + 31);
@@ -272,7 +316,7 @@ module cap_full() difference() {
 }
 module top() intersection() { cap_full(); bx(-80, 80, 100, 400, lid_t, 40); }
 module cav_2d() {
-    rrect(cav_hw, cav_s0, cav_s1, 18);
+    cav_body_2d();
     translate([-(ear_gap/2 + ear_t + 2), cav_s1 - 20]) square([ear_gap + 2*ear_t + 4, ear_s1 - cav_s1 + 20]);
 }
 module printer_2d() translate([0, s_pf + pr_l/2]) offset(r = pr_r) square([pr_w - 2*pr_r, pr_l - 2*pr_r], center = true);
@@ -306,6 +350,35 @@ module lid() {
     }
 }
 
+// ================= BEKAPCSOLÓGOMB (két darab, lokálisan: z = a fal külső síkjától befelé) =================
+module btn_outer_local() {
+    u_head = btn_cb_depth - btn_travel;                // a fej alsó síkja nyugalomban (kifelé húzva)
+    translate([0, 0, u_head - btn_head_h]) hull() {    // fej, enyhén letört peremmel
+        cylinder(d = btn_head_d - 1, h = btn_head_h);
+        translate([0, 0, 0.5]) cylinder(d = btn_head_d, h = btn_head_h - 0.5);
+    }
+    translate([0, 0, u_head - eps]) cylinder(d = btn_shaft_d, h = btn_u_in - u_head + eps);           // szár
+    translate([0, 0, btn_u_in - eps]) cylinder(d = btn_groove_d, h = btn_groove_l + 2*eps);         // horony a klipsznek
+    translate([0, 0, btn_u_in + btn_groove_l]) cylinder(d = btn_shaft_d, h = btn_lip_l);             // gallér
+    u_tip0 = btn_u_in + btn_groove_l + btn_lip_l;
+    u_tip1 = btn_u_pr - btn_tip_clear;
+    translate([0, 0, u_tip0 - eps]) cylinder(d = btn_tip_d, h = (u_tip1 - u_tip0) / 2 + eps);
+    // kúpos csúcs: minden irányból rámpa, a hátulról becsúszó nyomtató nem akad bele
+    translate([0, 0, u_tip0 + (u_tip1 - u_tip0) / 2]) cylinder(d1 = btn_tip_d, d2 = btn_tip_d - 2, h = (u_tip1 - u_tip0) / 2);
+}
+module btn_inner_local() difference() {   // patkó-klipsz: oldalról pattan a horonyra (XY-ban nyomtatva, a karok XY-ban hajlanak)
+    union() {
+        cylinder(d = btn_clip_od, h = btn_clip_t);
+        translate([-btn_clip_od/2 - 2.5, -2, 0]) cube([3, 4, btn_clip_t]);    // fogantyú a le- és felhúzáshoz
+    }
+    translate([0, 0, -1]) cylinder(d = btn_groove_d + 0.2, h = btn_clip_t + 2);
+    translate([0, -btn_clip_mouth/2, -1]) cube([btn_clip_od, btn_clip_mouth, btn_clip_t + 2]);
+    translate([btn_groove_d/2 - 0.3, 0, -1]) cylinder(d = 1.2, h = btn_clip_t + 2);   // feszültségcsökkentő a száj tövénél
+}
+module btn_place(press = 0) translate([-C_hw + press, s_btn, t_btn]) rotate([0, 90, 0]) children();
+module btn_outer(press = 0) btn_place(press) btn_outer_local();
+module btn_inner(press = 0) btn_place(press) translate([0, 0, btn_u_in]) btn_inner_local();
+
 // ================= makettek =================
 module printer_dummy() color("turquoise", 0.65) {
     translate([0, 0, t_pb]) linear_extrude(pr_h) translate([0, s_pf + pr_l/2]) offset(r = pr_r) square([pr_w - 2*pr_r, pr_l - 2*pr_r], center = true);
@@ -319,6 +392,7 @@ module powerbank_dummy() color("dimgray") bx(-32.5, 32.5, 0, 98, t_back + wall +
 module assembly_flat(show_inside = false) {
     color([0.12, 0.13, 0.14]) { base(); base_lips(); back_full(); }
     color([0.85, 0.92, 0.18]) top();
+    color([0.12, 0.13, 0.14]) { btn_outer(); btn_inner(); }
     color([0.12, 0.13, 0.14]) lid();
     phone_dummy(); screen_dummy();
     if (show_inside) { printer_dummy(); qi_dummy(); powerbank_dummy(); }
@@ -328,7 +402,10 @@ if (PART == "base") translate([0, 0, deck_t]) { base(); base_lips(); }          
 else if (PART == "back") translate([0, 0, -t_back]) back_full();                        // hátlappal az ágyon
 else if (PART == "top") translate([0, 0, cap_front]) rotate([0, 180, 0]) top();          // elejével az ágyon
 else if (PART == "lid") translate([0, 0, -cap_back]) lid();                             // hátlappal az ágyon
+else if (PART == "btn_outer") translate([0, 0, btn_travel - btn_cb_depth + btn_head_h]) btn_outer_local();   // fejjel az ágyon
+else if (PART == "btn_inner") btn_inner_local();                                        // laposan az ágyon
 else if (PART == "raw_base") { base(); base_lips(); }      // készülék-koordinátában (előnézethez)
+else if (PART == "raw_btn") { btn_outer(); btn_inner(); }
 else if (PART == "raw_back") back_full();
 else if (PART == "raw_top") top();
 else if (PART == "raw_lid") lid();
